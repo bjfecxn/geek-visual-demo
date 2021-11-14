@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>canvas-demo</title>
+  <style>
+    .canvas-box {
+      margin: 20px;
+    }
+    .canvas-box canvas {
+      background-color: aliceblue;
+    }
+  </style>
+</head>
+<body>
+  <div class="canvas-box">
+    <h1>正三角形</h1>
+    <canvas id="triangle" width="300" height="300" ></canvas>
+  </div>
+  <div class="canvas-box">
+    <h1>椭圆形</h1>
+    <canvas id="ellipse"  width="300" height="300" ></canvas>
+  </div>
+  <script>
+    /**
+     * 在 canvas 中心绘制一个边长为 100 的正三角形
+    */
+    function drawTriangle() {
+      const canvas = document.getElementById("triangle");
+      const w = canvas.width;
+      const h = canvas.height;
+      const L = 100;
+      const ctx = canvas.getContext("2d");
+      ctx.fillStyle = 'rgba(255,0,0,.3)';
+
+      // translate 至左侧顶点
+      ctx.translate(w / 2 - L / 2, h / 2 + L / (2 * Math.sqrt(3)));
+      
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      // line 至右侧顶点
+      ctx.lineTo(L, 0);
+      // line 至顶部顶点
+      ctx.lineTo(L / 2, -(L * Math.sqrt(3)/2));
+      ctx.fill();
+    }
+
+    /**
+     * 在 canvas 中心绘制一个椭圆形
+    */
+    function drawEllipse() {
+      const canvas = document.getElementById("ellipse");
+    }
+
+    drawTriangle();
+  </script>
+</body>
+</html>
