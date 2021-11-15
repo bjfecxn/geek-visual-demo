@@ -10,13 +10,14 @@
       margin: 0;
       padding: 0;
     }
+    #city {
+      position: relative;
+    }
+    #city li.abs {
+      position: absolute;
+    }
     ol, li {
       border-radius: 50%;
-      display: inline-block;
-    }
-    li {
-      float: left;
-      padding: 10px;
       background-color: rgba(255, 0, 0, .3);
     }
   </style>
@@ -24,14 +25,18 @@
 <body>
   <ol id="city"></ol>
   <script type="module">
+    import { hierarchy, pack } from "https://cdn.skypack.dev/d3-hierarchy@3";
     const dataSource = 'https://s5.ssl.qhres2.com/static/b0695e2dd30daa64.json';
     const RED = 'rgba(255,0,0,.3)';
     const GREEN = 'rgba(0,255,0,.3)';
     const WHITE = '#fff';
 
-    function insertElements(parent, data) {
-      const { name, children } = data
+    function insertElements(parent, root) {
+      const { data: { name }, children, x, y, r } = root
+      const d = 2 * r;
       const li = document.createElement('li');
+      li.className = 'abs';
+      li.style = `width:${d}px;height:${d}px;left:${x-r}px;top:${y-r}px;`
 
       if (!children) {
         li.textContent = name;
@@ -44,9 +49,16 @@
     }
     (async function () {
       const data = await (await fetch(dataSource)).json();
+      const regionsData = hierarchy(data) .sum(d => 1) .sort((a, b) => b.value - a.value);
+
+      const packFunc = pack().size([800, 800]) .padding(3);
+
+      const root = packFunc(regionsData);
+
+      console.log('root', root);
       const parent = document.getElementById('city');
 
-      insertElements(parent, data);
+      insertElements(parent, root);
     }());
   </script>
 </body>
