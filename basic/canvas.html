@@ -6,6 +6,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>canvas-demo</title>
   <style>
+    h1 {
+      font-size: 14px;
+    }
     .canvas-box {
       margin: 20px;
     }
@@ -16,12 +19,86 @@
 </head>
 <body>
   <div class="canvas-box">
+    <h1>城市层次关系图</h1>
+    <canvas id="city" width="500" height="500" ></canvas>
+  </div>
+  <!-- 作业 2 -->
+  <script type="module">
+    import { hierarchy, pack } from "https://cdn.skypack.dev/d3-hierarchy@3";
+    const dataSource = 'https://s5.ssl.qhres2.com/static/b0695e2dd30daa64.json';
+
+    const draw = (ctx, node, { fillStyle = 'rgba(255,0,0,.3)', textStyle = '#fff' } = {}) => {
+      const {x, y, r, data: { name }} = node;
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2, true);
+
+      if (!node.children) {
+        ctx.fillStyle = node.mouseIn ? 'rgba(0,255,0,.3)' : fillStyle;
+        ctx.fill();
+
+        ctx.fillStyle = textStyle;
+        ctx.textAlign = 'center';
+        ctx.fillText(name, x, y);
+        return;
+      }
+      ctx.fillStyle = fillStyle;
+      ctx.fill();
+
+      node.children.forEach(n => draw(ctx, n));
+    }
+
+    const markMousemoveCity = (node, { mouseX, mouseY }) => {
+      if (!node.children) {
+        const {x, y, r} = node;
+        const dx = Math.abs(mouseX - x);
+        const dy = Math.abs(mouseY - y);
+
+        if ((dx * dx + dy * dy) <= r * r) {
+          node.mouseIn = true;
+        } else {
+          node.mouseIn = false;
+        }
+        return;
+      }
+      node.children.forEach(n => markMousemoveCity(n, { mouseX, mouseY }));
+    }
+    (async function () {
+      const data = await (await fetch(dataSource)).json();
+      console.log('data', data);
+
+      const regionsData = hierarchy(data) .sum(d => 1) .sort((a, b) => b.value - a.value);
+
+      const packFunc = pack().size([500, 500]) .padding(3);
+
+      const root = packFunc(regionsData);
+
+      const canvas = document.getElementById('city');
+      const ctx = canvas.getContext('2d');
+
+      canvas.addEventListener('mousemove', (e) => {
+        const { offsetX,  offsetY} = e;
+
+        markMousemoveCity(root, { mouseX: offsetX, mouseY: offsetY });
+
+        canvas.getContext('2d').clearRect(0,0,canvas.width, canvas.height);
+        draw(ctx, root);
+      })
+
+      draw(ctx, root);
+
+    }());
+  </script>
+  <div class="canvas-box">
     <h1>正三角形</h1>
     <canvas id="triangle" width="300" height="300" ></canvas>
   </div>
   <div class="canvas-box">
     <h1>椭圆形</h1>
     <canvas id="ellipse"  width="300" height="300" ></canvas>
+  </div>
+  <div class="canvas-box">
+    <h1>椭圆形2</h1>
+    <canvas id="ellipse2"  width="300" height="300" ></canvas>
   </div>
   <script>
     /**
@@ -50,11 +127,48 @@
     /**
      * 在 canvas 中心绘制一个椭圆形
     */
-    function drawEllipse() {
-      const canvas = document.getElementById("ellipse");
+    function drawEllipse(canvas, {xAxisLen, yAxisLen} = { xAxisLen: 200, yAxisLen: 100 }) {
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width;
+      const h = canvas.height;
+      const a = xAxisLen / 2;
+      const b = yAxisLen / 2;
+      const center = [w/2, h/2];
+
+      if (typeof ctx.ellipse === 'function') {
+        // 最新 API，部分浏览器支持
+        ctx.beginPath();
+        // api 地址： https://www.canvasapi.cn/CanvasRenderingContext2D/ellipse#&examples
+        ctx.ellipse(...center, a, b, 0, 0, 2 * Math.PI, true);
+        ctx.fillStyle = 'rgba(255,0,0,.3)';
+        ctx.fill();
+        return;
+      }
+
+      // x 轴是长轴和 y 轴是长轴的起始点不一样
+      const startPoint = xAxisLen > yAxisLen ? [a, 0] : [0, b];
+
+      const step = 1 / Math.max(a, b);
+      
+      ctx.fillStyle = 'rgba(255,0,0,.3)';
+      ctx.translate(...center);
+        
+      ctx.beginPath();
+      ctx.moveTo(...startPoint);
+      for(let angle = 0; angle <= 2 * Math.PI; angle += step) {
+        const x = a * Math.cos(angle);
+        const y = b * Math.sin(angle);
+        ctx.lineTo(x, y);
+      }
+      ctx.fill();
     }
 
+    // 正三角形
     drawTriangle();
+    // x 轴是长轴
+    drawEllipse(document.getElementById("ellipse"));
+    // y 轴是长轴
+    drawEllipse(document.getElementById("ellipse2"), { xAxisLen: 100, yAxisLen: 200 });
   </script>
 </body>
 </html>
