@@ -58,15 +58,19 @@
         const {x, y, r} = node;
         const dx = Math.abs(mouseX - x);
         const dy = Math.abs(mouseY - y);
+        const oldMouseIn = node.mouseIn;
+        let mouseIn = false;
 
         if ((dx * dx + dy * dy) <= r * r) {
-          node.mouseIn = true;
-        } else {
-          node.mouseIn = false;
+          mouseIn = true;
         }
-        return;
+        node.mouseIn = mouseIn;
+        // 有重绘元素
+        if (mouseIn !== oldMouseIn) return true;
+        return false;
       }
-      node.children.forEach(n => markMousemoveCity(n, { mouseX, mouseY }));
+      // 有重绘元素的时候才进行重绘
+      return !!node.children.find(n => markMousemoveCity(n, { mouseX, mouseY }));
     }
     (async function () {
       const data = await (await fetch(dataSource)).json();
@@ -84,10 +88,14 @@
       canvas.addEventListener('mousemove', (e) => {
         const { offsetX,  offsetY} = e;
 
-        markMousemoveCity(root, { mouseX: offsetX, mouseY: offsetY });
+        const redraw = markMousemoveCity(root, { mouseX: offsetX, mouseY: offsetY });
 
-        canvas.getContext('2d').clearRect(0,0,canvas.width, canvas.height);
-        draw(ctx, root);
+        console.log('redraw', redraw);
+
+        if (redraw) {
+          canvas.getContext('2d').clearRect(0,0,canvas.width, canvas.height);
+          draw(ctx, root);
+        }
       })
 
       draw(ctx, root);
