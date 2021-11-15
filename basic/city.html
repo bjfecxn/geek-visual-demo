@@ -17,8 +17,16 @@
       position: absolute;
     }
     ol, li {
+      list-style: none;
       border-radius: 50%;
       background-color: rgba(255, 0, 0, .3);
+      text-align: center;
+      word-break: break-all;
+      white-space: nowrap;
+      color: #fff;
+    }
+    li:hover {
+      background-color: rgba(0, 255, 0, .3);
     }
   </style>
 </head>
@@ -31,18 +39,20 @@
     const GREEN = 'rgba(0,255,0,.3)';
     const WHITE = '#fff';
 
-    function insertElements(parent, root) {
+    function insertElements(parent, root, {parentL = 0, parentT = 0} = {}) {
       const { data: { name }, children, x, y, r } = root
       const d = 2 * r;
+      const left = x - r - parentL;
+      const top = y - r - parentT;
       const li = document.createElement('li');
       li.className = 'abs';
-      li.style = `width:${d}px;height:${d}px;left:${x-r}px;top:${y-r}px;`
+      li.style = `width:${d}px;height:${d}px;left:${left}px;top:${top}px;line-height:${d}px;`
 
       if (!children) {
         li.textContent = name;
       } else {
         const ol = document.createElement('ol');
-        children.forEach(child => insertElements(ol, child));
+        children.forEach(child => insertElements(ol, child, {parentL: left, parentT: top}));
         li.appendChild(ol);
       }
       parent.appendChild(li);
