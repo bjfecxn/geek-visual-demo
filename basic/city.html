@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>html实现城市层级关系图</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+    ol, li {
+      border-radius: 50%;
+      display: inline-block;
+    }
+    li {
+      float: left;
+      padding: 10px;
+      background-color: rgba(255, 0, 0, .3);
+    }
+  </style>
+</head>
+<body>
+  <ol id="city"></ol>
+  <script type="module">
+    const dataSource = 'https://s5.ssl.qhres2.com/static/b0695e2dd30daa64.json';
+    const RED = 'rgba(255,0,0,.3)';
+    const GREEN = 'rgba(0,255,0,.3)';
+    const WHITE = '#fff';
+
+    function insertElements(parent, data) {
+      const { name, children } = data
+      const li = document.createElement('li');
+
+      if (!children) {
+        li.textContent = name;
+      } else {
+        const ol = document.createElement('ol');
+        children.forEach(child => insertElements(ol, child));
+        li.appendChild(ol);
+      }
+      parent.appendChild(li);
+    }
+    (async function () {
+      const data = await (await fetch(dataSource)).json();
+      const parent = document.getElementById('city');
+
+      insertElements(parent, data);
+    }());
+  </script>
+</body>
+</html>

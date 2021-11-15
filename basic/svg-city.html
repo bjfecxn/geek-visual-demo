@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>svg-demo</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+    svg {
+      background-color: aliceblue;
+    }
+    #title {
+      margin: 20px 0;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div>
+    <h1 id="title">中国</h1>
+    <svg xmlns="http://www.w3.org/2000/svg" version="1.1" id="city" style="width:800px;height:800px;"></svg>
+  </div>
+  <script type="module">
+    import { hierarchy, pack } from "https://cdn.skypack.dev/d3-hierarchy@3";
+    const dataSource = 'https://s5.ssl.qhres2.com/static/b0695e2dd30daa64.json';
+    const RED = 'rgba(255,0,0,.3)';
+    const GREEN = 'rgba(0,255,0,.3)';
+    const WHITE = '#fff';
+
+    /** 
+     * 根据 svg 命名空间创建 svg 内的标签
+    */
+    function createSvgElement(tag) {
+      return document.createElementNS('http://www.w3.org/2000/svg', tag);
+    }
+    /** 
+     * 设置标题
+    */
+    function setTitle(title) {
+      document.getElementById('title').textContent = title;
+    }
+
+    /** 
+     * 生成城市 svg
+    */
+    function genCitySvg(parent, node, { fillColor = RED, textColor = WHITE } = {}) {
+      const circle = createSvgElement('circle');
+      const {x, y, r, data: { name }} = node;
+      circle.setAttribute('cx', x);
+      circle.setAttribute('cy', y);
+      circle.setAttribute('r', r);
+      circle.setAttribute('fill', fillColor);
+      circle.setAttribute('data-name', name);
+      parent.appendChild(circle);
+      
+      if (!node.children) {
+        const text = createSvgElement('text');
+        text.setAttribute('x', x);
+        text.setAttribute('y', y);
+        text.setAttribute('fill', textColor);
+        text.setAttribute('text-anchor', 'middle');
+        text.setAttribute('font-size', '1rem');
+        text.textContent = name;
+        parent.appendChild(text);
+        return;
+      }
+      const g = createSvgElement('g');
+      g.setAttribute('data-name', name);
+      node.children.forEach(n => genCitySvg(g, n));
+      parent.appendChild(g);
+    }
+
+    (async function () {
+      const data = await (await fetch(dataSource)).json();
+      const regionsData = hierarchy(data) .sum(d => 1) .sort((a, b) => b.value - a.value);
+
+      const packFunc = pack().size([800, 800]) .padding(3);
+
+      const root = packFunc(regionsData);
+
+      console.log('root', root);
+
+      const svg = document.getElementById('city');
+
+      genCitySvg(svg, root);
+
+      svg.addEventListener('mousemove', (e) => {
+        const {target} = e;
+        const {nodeName, parentNode} = target;
+        let parentName = '';
+        
+        let name = target.getAttribute('data-name');
+        if (target.nodeName === 'text') {
+          name = target.textContent;
+        }
+        if (parentNode && parentNode.nodeName === 'g') {
+          parentName = parentNode.getAttribute('data-name');
+        }
+        
+        setTitle([parentName, name].filter(name => !!name).join('-') || '中国');
+
+        if (target.nodeName !== 'text') {
+          target.setAttribute('fill', GREEN);
+        }
+      });
+
+      svg.addEventListener('mouseout', (e) => {
+        const {target} = e;
+        const {nodeName, parentNode} = target;
+        if (target.nodeName !== 'text') {
+          target.setAttribute('fill', RED);
+        }
+      })
+    }());
+  </script>
+</body>
+</html>
