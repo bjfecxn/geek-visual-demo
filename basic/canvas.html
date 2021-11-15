@@ -27,6 +27,9 @@
     import { hierarchy, pack } from "https://cdn.skypack.dev/d3-hierarchy@3";
     const dataSource = 'https://s5.ssl.qhres2.com/static/b0695e2dd30daa64.json';
 
+    /**
+     * 绘制城市层次关系古
+    */
     const draw = (ctx, node, { fillStyle = 'rgba(255,0,0,.3)', textStyle = '#fff' } = {}) => {
       const {x, y, r, data: { name }} = node;
       ctx.beginPath();
@@ -47,6 +50,9 @@
       node.children.forEach(n => draw(ctx, n));
     }
 
+    /** 
+     * 标记鼠标所在的城市
+    */
     const markMousemoveCity = (node, { mouseX, mouseY }) => {
       if (!node.children) {
         const {x, y, r} = node;
