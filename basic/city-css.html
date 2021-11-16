@@ -1,3 +1,11 @@
+<!--
+ * @Author: your name
+ * @Date: 2021-11-15 18:22:14
+ * @LastEditTime: 2021-11-16 11:17:56
+ * @LastEditors: Please set LastEditors
+ * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+ * @FilePath: /geek-visual-demo/basic/css-city.html
+-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -28,9 +36,24 @@
     li:hover {
       background-color: rgba(0, 255, 0, .3);
     }
+    #title {
+      text-align: center;
+    }
   </style>
 </head>
 <body>
+  <!-- 没有单独设置文本的标签，各个层级之间有嵌套关系，出来的 hover 效果会和 svg 的有所不同 -->
+  <!-- 优点： 
+    1: 样式设置方便，通过 CSS 即可操作；一些简单的交互，如： hover 等样式也可以通过 css 操作；
+    2: 无需 svg 知识
+    3: 「宇宙全栈」小伙伴的优秀答案：可以将样式和节点解耦，有利于样式的模块化和复用，比如多种主题色，一键换色等
+  -->
+  <!-- 缺点
+    1: 这种设置层级关系在设置定位的时候要计算定位（可以换一种布局形式，参考 css-city2.html ）
+    2: 圆的图形还好，如果是复杂的图形，css在绘制和定位上会麻烦很多；
+    3: 同样也是 dom 操作，如果量级大（千万）的时候，浏览器性能低下；
+   -->
+  <h1 id="title">标题</h1>
   <ol id="city"></ol>
   <script type="module">
     import { hierarchy, pack } from "https://cdn.skypack.dev/d3-hierarchy@3";
@@ -38,6 +61,13 @@
     const RED = 'rgba(255,0,0,.3)';
     const GREEN = 'rgba(0,255,0,.3)';
     const WHITE = '#fff';
+
+    /** 
+     * 设置标题
+    */
+    function setTitle(title) {
+      document.getElementById('title').textContent = title;
+    }
 
     function insertElements(parent, root, {parentL = 0, parentT = 0} = {}) {
       const { data: { name }, children, x, y, r } = root
@@ -47,11 +77,13 @@
       const li = document.createElement('li');
       li.className = 'abs';
       li.style = `width:${d}px;height:${d}px;left:${left}px;top:${top}px;line-height:${d}px;`
+      li.setAttribute('data-name', name);
 
       if (!children) {
         li.textContent = name;
       } else {
         const ol = document.createElement('ol');
+        ol.setAttribute('data-name', name);
         children.forEach(child => insertElements(ol, child, {parentL: left, parentT: top}));
         li.appendChild(ol);
       }
@@ -69,6 +101,15 @@
       const parent = document.getElementById('city');
 
       insertElements(parent, root);
+
+      parent.addEventListener('mousemove', (e) => {
+        const { target } = e;
+        const { parentNode } = target;
+        const name = target.getAttribute('data-name');
+        const parentName = parentNode ? parentNode.getAttribute('data-name') : null;
+
+        setTitle([parentName, name].filter(name => !!name).join('-'));
+      })
     }());
   </script>
 </body>

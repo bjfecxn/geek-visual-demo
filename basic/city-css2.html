@@ -1,0 +1,125 @@
+<!--
+ * @Author: your name
+ * @Date: 2021-11-15 18:22:14
+ * @LastEditTime: 2021-11-16 11:17:49
+ * @LastEditors: Please set LastEditors
+ * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+ * @FilePath: /geek-visual-demo/basic/css-city.html
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>html实现城市层级关系图</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+    #city {
+      position: relative;
+    }
+    #city li.abs, #city span.abs {
+      position: absolute;
+    }
+    #city span.abs {
+      text-align: center;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+    ol, li {
+      list-style: none;
+      border-radius: 50%;
+      background-color: rgba(255, 0, 0, .3);
+      text-align: center;
+      word-break: break-all;
+      white-space: nowrap;
+      color: #fff;
+    }
+    li:hover {
+      background-color: rgba(0, 255, 0, .3);
+    }
+    #title {
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <!-- 这个层级关系是模拟 svg 的那个层级关系 -->
+  <!-- 优点： 
+    1: 样式设置方便，通过 CSS 即可操作；一些简单的交互，如： hover 等样式也可以通过 css 操作；
+    2: 无需 svg 知识
+    3: 这种布局形式，所有的定位都是参考最外层的父元素，无需再次计算定位，相对于 css-city.html 中的布局会简单点；
+    4: 「宇宙全栈」小伙伴的优秀答案：可以将样式和节点解耦，有利于样式的模块化和复用，比如多种主题色，一键换色等
+  -->
+  <!-- 缺点
+    1: 圆的图形还好，如果是复杂的图形，css在绘制和定位上会麻烦很多；
+    2: 同样也是 dom 操作，如果量级大（千万）的时候，浏览器性能低下；
+   -->
+  <h1 id="title">标题</h1>
+  <ol id="city"></ol>
+  <script type="module">
+    import { hierarchy, pack } from "https://cdn.skypack.dev/d3-hierarchy@3";
+    const dataSource = 'https://s5.ssl.qhres2.com/static/b0695e2dd30daa64.json';
+    const RED = 'rgba(255,0,0,.3)';
+    const GREEN = 'rgba(0,255,0,.3)';
+    const WHITE = '#fff';
+
+    /** 
+     * 设置标题
+    */
+    function setTitle(title) {
+      document.getElementById('title').textContent = title;
+    }
+
+    function insertElements(parent, root) {
+      const { data: { name }, children, x, y, r } = root
+      const d = 2 * r;
+      const left = x - r;
+      const top = y - r;
+      const li = document.createElement('li');
+      li.className = 'abs';
+      li.style = `width:${d}px;height:${d}px;left:${left}px;top:${top}px;`
+      li.setAttribute('data-name', name);
+      parent.appendChild(li);
+
+      if (!children) {
+        const span = document.createElement('span');
+        span.className = 'abs'
+        span.style = `width:${d}px;height:${d}px;left:${left}px;top:${top}px;line-height:${d}px;`;
+        span.textContent = name;
+        parent.appendChild(span);
+      } else {
+        const ol = document.createElement('ol');
+        ol.setAttribute('data-name', name);
+        children.forEach(child => insertElements(ol, child));
+        parent.appendChild(ol);
+      }
+    }
+    (async function () {
+      const data = await (await fetch(dataSource)).json();
+      const regionsData = hierarchy(data) .sum(d => 1) .sort((a, b) => b.value - a.value);
+
+      const packFunc = pack().size([800, 800]) .padding(3);
+
+      const root = packFunc(regionsData);
+
+      console.log('root', root);
+      const parent = document.getElementById('city');
+
+      insertElements(parent, root);
+
+      parent.addEventListener('mousemove', (e) => {
+        const { target } = e;
+        const { parentNode } = target;
+        const name = target.getAttribute('data-name');
+        const parentName = parentNode ? parentNode.getAttribute('data-name') : null;
+
+        setTitle([parentName, name].filter(name => !!name).join('-'));
+      })
+    }());
+  </script>
+</body>
+</html>

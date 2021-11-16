@@ -64,6 +64,7 @@
         text.setAttribute('fill', textColor);
         text.setAttribute('text-anchor', 'middle');
         text.setAttribute('font-size', '1rem');
+        text.setAttribute('pointer-events', 'none');
         text.textContent = name;
         parent.appendChild(text);
         return;
@@ -88,33 +89,22 @@
 
       genCitySvg(svg, root);
 
+      let activeTarget = null
+
       svg.addEventListener('mousemove', (e) => {
         const {target} = e;
         const {nodeName, parentNode} = target;
-        let parentName = '';
-        
-        let name = target.getAttribute('data-name');
-        if (target.nodeName === 'text') {
-          name = target.textContent;
-        }
-        if (parentNode && parentNode.nodeName === 'g') {
-          parentName = parentNode.getAttribute('data-name');
-        }
-        
+
+        const parentName = parentNode ? parentNode.getAttribute('data-name') : null;
+        const name = target.getAttribute('data-name');
         setTitle([parentName, name].filter(name => !!name).join('-') || '中国');
 
-        if (target.nodeName !== 'text') {
+        if (activeTarget !== target) {
+          if (activeTarget) activeTarget.setAttribute('fill', RED);
           target.setAttribute('fill', GREEN);
+          activeTarget = target;
         }
       });
-
-      svg.addEventListener('mouseout', (e) => {
-        const {target} = e;
-        const {nodeName, parentNode} = target;
-        if (target.nodeName !== 'text') {
-          target.setAttribute('fill', RED);
-        }
-      })
     }());
   </script>
 </body>
