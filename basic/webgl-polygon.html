@@ -9,9 +9,30 @@
     .canvas-box canvas {
       background-color: bisque;
     }
+    .select-area {
+      padding: 20px;
+    }
   </style>
 </head>
 <body>
+  <div class="select-area">
+    <label for="polygon-num">选择多边形：</label>
+    <select id="polygon-num" name="polygon-num">
+      <option value="4">四边形</option>
+      <option value="5">五边形</option>
+      <option value="6" selected>六边形</option>
+      <option value="7">七边形</option>
+      <option value="8">八边形</option>
+      <option value="9">九边形</option>
+    </select>
+  </div>
+  <script>
+    const oSelect = document.getElementById('polygon-num');
+    oSelect.onchange = (e) => {
+      const { value } = e.target;
+      main(Number(value));
+    }
+  </script>
   <div class="canvas-box">
     <canvas id="polygon" width="300" height="300"></canvas>
   </div>
@@ -63,13 +84,13 @@
       return points;
     }
 
-    function initBuffers(gl) {
+    function initBuffers(gl, num) {
       const positionBuffer = gl.createBuffer();
       gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
       // 中心点 (0, 0)，假设多边形的半径为 1，计算各个三角形的顶点坐标
       const center = [0, 0];
       // 多边形更换这个数字就行
-      const num = 5;
+      // const num = 5;
       const points = getPolygonPoints(num, center);
       // 计算多边形的三角形坐标
       gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(points), gl.STATIC_DRAW);
@@ -96,7 +117,7 @@
       gl.drawArrays(gl.TRIANGLES, 0, buffers.__vertexCount);
     }
 
-    function main() {
+    function main(num) {
       // 创建 webgl context
       const canvas = document.querySelector('#polygon');
       const gl = canvas.getContext('webgl');
@@ -134,7 +155,7 @@
       // 创建 webgl program
       const shaderProgram = initShaderProgram(gl, vertex, fragment);
       // 将数据写入缓冲区
-      const buffers = initBuffers(gl);
+      const buffers = initBuffers(gl, num);
 
       const programInfo = {
         program: shaderProgram,
@@ -147,7 +168,7 @@
     }
 
     document.body.onload = function() {
-      main();
+      main(6);
     }
   </script>
 </body>
