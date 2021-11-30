@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>webgl-triangle</title>
+  <title>webgl-polygon 多边形</title>
   <style>
     .canvas-box canvas {
       background-color: bisque;
@@ -13,7 +13,7 @@
 </head>
 <body>
   <div class="canvas-box">
-    <canvas id="triangle" width="300" height="300"></canvas>
+    <canvas id="polygon" width="300" height="300"></canvas>
   </div>
   <script>
     function loadShader(gl, type, source) {
@@ -41,21 +41,42 @@
       return shaderProgram;
     }
 
+    /**
+     * 获取多边形的顶点坐标
+    */
+    function getPolygonCoordinates(num, centerCo = [0, 0]) {
+      if (typeof num != 'number' || num < 3) num = 3;
+      const [x, y] = centerCo;
+      const angle = 360 / num;
+      const coordinates = [];
+      for (let i = 1; i <= num; i++) {
+        // 转读
+        const radian = (angle * i) * (Math.PI/180);
+        coordinates.push([Math.sin(radian) + x, Math.cos(radian) + y])
+      }
+      return coordinates;
+    }
+
     function initBuffers(gl) {
       const positionBuffer = gl.createBuffer();
       gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-      // 坐标调整可以调整三角形的大小
-      // const points = new Float32Array([
-      //   -0.5, -0.5,
-      //   0, 0.5,
-      //   0.5, -0.5,
-      // ]);
-      const points = new Float32Array([
-        -1, -1,
-        0, 1,
-        1, -1,
-      ]);
-      gl.bufferData(gl.ARRAY_BUFFER, points, gl.STATIC_DRAW);
+      // 中心点 (0, 0)，假设多边形的半径为 1，计算各个三角形的顶点坐标
+      const center = [0, 0];
+      // 多边形更换这个数字就行
+      const num = 6;
+      const coordinates = getPolygonCoordinates(num, center);
+      // 计算多边形的三角形坐标
+      let points = [];
+      for(let i = 0; i < num; i++) {
+        if (i === num - 1) {
+          points = points.concat([...center, ...coordinates[i], ...coordinates[0]]);
+        } else {
+          points = points.concat([...center, ...coordinates[i], ...coordinates[i + 1]]);
+        }
+      }
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(points), gl.STATIC_DRAW);
+
+
       return {
         __vertexCount: points.length / 2,
         position: positionBuffer
@@ -74,15 +95,12 @@
       // 清空画布
       gl.clear(gl.COLOR_BUFFER_BIT);
       // 绘制
-      // 实心三角形
-      // gl.drawArrays(gl.TRIANGLES, 0, buffers.__vertexCount);
-      // 作业1: 空心三角形
-      gl.drawArrays(gl.LINE_LOOP, 0, buffers.__vertexCount);
+      gl.drawArrays(gl.TRIANGLES, 0, buffers.__vertexCount);
     }
 
     function main() {
       // 创建 webgl context
-      const canvas = document.querySelector('#triangle');
+      const canvas = document.querySelector('#polygon');
       const gl = canvas.getContext('webgl');
 
       if (!gl) {
@@ -97,9 +115,7 @@
         void main() {
           gl_PointSize = 1.0;
 
-          // gl_Position = vec4(aPosition, 1.0, 1.0);
-          // GPU 是同时渲染，所以可以在顶点坐标统一处理坐标大小，这样也可以控制三角形大小
-          gl_Position = vec4(aPosition * 0.5, 1.0, 1.0);
+          gl_Position = vec4(aPosition, 1.0, 1.0);
           
           vColor = vec3(0.5 + aPosition * 0.5, 0.0);
         }

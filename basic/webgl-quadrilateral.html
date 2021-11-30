@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>webgl-triangle</title>
+  <title>webgl-quadrilateral四边形</title>
   <style>
     .canvas-box canvas {
       background-color: bisque;
@@ -13,7 +13,7 @@
 </head>
 <body>
   <div class="canvas-box">
-    <canvas id="triangle" width="300" height="300"></canvas>
+    <canvas id="quadrilateral" width="300" height="300"></canvas>
   </div>
   <script>
     function loadShader(gl, type, source) {
@@ -44,16 +44,16 @@
     function initBuffers(gl) {
       const positionBuffer = gl.createBuffer();
       gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-      // 坐标调整可以调整三角形的大小
-      // const points = new Float32Array([
-      //   -0.5, -0.5,
-      //   0, 0.5,
-      //   0.5, -0.5,
-      // ]);
+      // 顶点坐标，两个三角形
       const points = new Float32Array([
-        -1, -1,
-        0, 1,
+        // 三角形 1
+        1, 1,
         1, -1,
+        -1, -1,
+        // 三角形 2
+        -1, -1,
+        1, 1,
+        -1, 1
       ]);
       gl.bufferData(gl.ARRAY_BUFFER, points, gl.STATIC_DRAW);
       return {
@@ -74,15 +74,12 @@
       // 清空画布
       gl.clear(gl.COLOR_BUFFER_BIT);
       // 绘制
-      // 实心三角形
-      // gl.drawArrays(gl.TRIANGLES, 0, buffers.__vertexCount);
-      // 作业1: 空心三角形
-      gl.drawArrays(gl.LINE_LOOP, 0, buffers.__vertexCount);
+      gl.drawArrays(gl.TRIANGLES, 0, buffers.__vertexCount);
     }
 
     function main() {
       // 创建 webgl context
-      const canvas = document.querySelector('#triangle');
+      const canvas = document.querySelector('#quadrilateral');
       const gl = canvas.getContext('webgl');
 
       if (!gl) {
@@ -97,9 +94,7 @@
         void main() {
           gl_PointSize = 1.0;
 
-          // gl_Position = vec4(aPosition, 1.0, 1.0);
-          // GPU 是同时渲染，所以可以在顶点坐标统一处理坐标大小，这样也可以控制三角形大小
-          gl_Position = vec4(aPosition * 0.5, 1.0, 1.0);
+          gl_Position = vec4(aPosition, 1.0, 1.0);
           
           vColor = vec3(0.5 + aPosition * 0.5, 0.0);
         }
