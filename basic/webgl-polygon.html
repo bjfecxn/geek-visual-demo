@@ -89,8 +89,6 @@
       gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
       // 中心点 (0, 0)，假设多边形的半径为 1，计算各个三角形的顶点坐标
       const center = [0, 0];
-      // 多边形更换这个数字就行
-      // const num = 5;
       const points = getPolygonPoints(num, center);
       // 计算多边形的三角形坐标
       gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(points), gl.STATIC_DRAW);
