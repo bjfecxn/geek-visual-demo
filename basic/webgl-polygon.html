@@ -41,20 +41,26 @@
       return shaderProgram;
     }
 
+    function getCoordinates(angle, x, y) {
+      const radian = angle * (Math.PI/180);
+      return [Math.sin(radian) + x, Math.cos(radian) + y];
+    }
+
     /**
      * 获取多边形的顶点坐标
     */
-    function getPolygonCoordinates(num, centerCo = [0, 0]) {
+    function getPolygonPoints(num, centerCo = [0, 0]) {
       if (typeof num != 'number' || num < 3) num = 3;
       const [x, y] = centerCo;
       const angle = 360 / num;
-      const coordinates = [];
+      let points = [];
       for (let i = 1; i <= num; i++) {
-        // 转读
-        const radian = (angle * i) * (Math.PI/180);
-        coordinates.push([Math.sin(radian) + x, Math.cos(radian) + y])
+        const coordinates = getCoordinates(angle * i, x, y);
+        const lastCoordinates = getCoordinates(angle * (i-1), x, y);
+        points = points.concat([...centerCo, ...coordinates, ...lastCoordinates]);
       }
-      return coordinates;
+
+      return points;
     }
 
     function initBuffers(gl) {
@@ -63,17 +69,9 @@
       // 中心点 (0, 0)，假设多边形的半径为 1，计算各个三角形的顶点坐标
       const center = [0, 0];
       // 多边形更换这个数字就行
-      const num = 6;
-      const coordinates = getPolygonCoordinates(num, center);
+      const num = 5;
+      const points = getPolygonPoints(num, center);
       // 计算多边形的三角形坐标
-      let points = [];
-      for(let i = 0; i < num; i++) {
-        if (i === num - 1) {
-          points = points.concat([...center, ...coordinates[i], ...coordinates[0]]);
-        } else {
-          points = points.concat([...center, ...coordinates[i], ...coordinates[i + 1]]);
-        }
-      }
       gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(points), gl.STATIC_DRAW);
 
 
