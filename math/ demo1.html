@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>数学篇章 demo1</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+    .canvas-box {
+      display: inline-block;
+      margin: 20px;
+      background-color: bisque;
+    }
+  </style>
+</head>
+<body>
+  <div class="canvas-box">
+    <canvas id="demo1" width="512" height="256"></canvas>
+  </div>
+  <script type="module">
+    // canvas 绘制山和太阳，复习回顾
+    const ctx = document.getElementById('demo1').getContext('2d');
+
+    // 山 1
+    ctx.fillStyle = 'rgba(0, 255, 0, .7)';
+    ctx.beginPath();
+    ctx.moveTo(76, 256);
+    ctx.lineTo(176, 156);
+    ctx.lineTo(276, 256);
+    ctx.fill();
+
+    // 山 2
+    ctx.fillStyle = 'rgba(0, 255, 0, .7)';
+    ctx.beginPath();
+    ctx.moveTo(236, 256);
+    ctx.lineTo(336, 156);
+    ctx.lineTo(436, 256);
+    ctx.fill();
+
+    // 太阳
+    ctx.fillStyle = 'rgba(255, 0, 0, .7)';
+    ctx.beginPath();
+    ctx.arc(256, 106, 40, 0, 2 * Math.PI, true);
+    ctx.fill();
+
+  </script>
+  <!-- 模拟手绘风格 -->
+  <div class="canvas-box">
+    <canvas id="demo2" width="512" height="256"></canvas>
+  </div>
+  <script type="module">
+    import rough from 'https://unpkg.com/roughjs@4.5.0/bundled/rough.esm.js';
+
+    const { canvas }  = rough;
+
+    const rc = canvas(document.getElementById('demo2'));
+    const ctx = rc.ctx;
+    ctx.translate(256, 256);
+    // 将坐标系向上翻转，以画布底端为 x 轴，左侧为 y 轴
+    ctx.scale(1, -1);
+
+    rc.path(`M-180 0L-80 100L20 0`, {fill: 'rgba(0, 255, 0, .7)'});
+    rc.path(`M-20 0L80 100L180 0`, {fill: 'rgba(0, 255, 0, .7)'});
+
+    rc.circle(0, 150, 80, { fill: 'rgba(255, 0, 0, .7)' }); // fill with red hachure
+  </script>
+</body>
+</html>

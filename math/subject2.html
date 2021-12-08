@@ -1,0 +1,212 @@
+<!--
+ * @Author: your name
+ * @Date: 2021-11-30 18:18:44
+ * @LastEditTime: 2021-11-30 18:19:50
+ * @LastEditors: your name
+ * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+ * @FilePath: /geek-visual-demo/math/js-math-function.html
+-->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>第一节课作业</title>
+  <style>
+    input {
+      width: 160px
+    }
+
+    h1 {
+      font-size: 20px;
+    }
+  </style>
+</head>
+
+<body>
+  <script>
+    // 点乘
+    function dot(A, B) {
+      return A.x * B.x + A.y * B.y;
+    }
+    // 叉乘
+    function cross(A, B) {
+      return A.x * B.y - A.y * B.x;
+    }
+    // 叉乘的模
+    function crossLen(A, B) {
+      return Math.abs(A.x * B.y - A.y * B.x);
+    }
+    // 向量的模
+    function length(A) {
+      return Math.hypot(A.x, A.y);
+    }
+    // 向量的角度
+    function dir(A) {
+      return Math.atan2(A.y, A.x);
+    }
+  </script>
+  <div style="display: flex;align-items: center;">
+    <div style="background-color: aliceblue;margin: 20px;">
+      <canvas id="subject2" width="500" height="500">
+
+      </canvas>
+    </div>
+    <div id="form-box">
+      <h1>点坐标：</h1>
+      <div>
+        <label for="p-x">x: </label>
+        <input type="number" id="p-x" name="p-x" min="0" max="500" step="1" value="0">
+      </div>
+      <div>
+        <label for="p-y">y: </label>
+        <input type="number" id="p-y" name="p-y" min="0" max="500" step="1" value="0">
+      </div>
+
+      <h1>线段起始坐标：</h1>
+      <div>
+        <label for="l-x0">x0: </label>
+        <input type="number" id="l-x0" name="l-x0" min="0" max="500" step="1" value="0">
+      </div>
+      <div>
+        <label for="l-y0">y0: </label>
+        <input type="number" id="l-y0" name="l-y0" min="0" max="500" step="1" value="200">
+      </div>
+
+      <h1>线段终点坐标：</h1>
+      <div>
+        <label for="l-x1">x1: </label>
+        <input type="number" id="l-x1" name="l-x1" min="0" max="500" step="1" value="200">
+      </div>
+      <div>
+        <label for="l-y1">y1: </label>
+        <input type="number" id="l-y1" name="l-y1" min="0" max="500" step="1" value="0">
+      </div>
+    </div>
+    <h2 id="result" style="margin-left: 20px;">
+      <span>Result: </span>
+    </h2>
+  </div>
+  <script type="module">
+    const canvas = document.getElementById('subject2');
+    const ctx = canvas.getContext('2d')
+
+
+    // 坐标翻转
+    ctx.translate(0, canvas.height);
+    ctx.scale(1, -1);
+
+    render();
+
+    function render() {
+      const { p, line } = getPLine();
+
+      renderCanvas(p, line);
+      const result = pointToLineLen(p, line);
+      document.getElementById('result').innerText = result;
+    }
+
+    document.getElementById('form-box').addEventListener('change', e => {
+      const { tagName, value, id } = e.target || {};
+      if (tagName != 'INPUT') return;
+
+      render();
+    })
+
+    function getPLine() {
+      const p = {
+        x: 0,
+        y: 0
+      }
+      const line = {
+        lx0: 0,
+        ly0: 0,
+        lx1: 0,
+        ly1: 0
+      }
+
+      const $inputs = document.getElementsByTagName('input');
+
+      for (let i = 0, l = $inputs.length; i < l; i++) {
+        const { id, value } = $inputs[i];
+
+        const [type, position] = id.split('-');
+        let v = parseInt(value);
+        if (isNaN(v)) v = 0;
+
+        if (type === 'p') {
+          p[position] = v;
+        } else {
+          line[`l${position}`] = v;
+        }
+      }
+
+      return {
+        p,
+        line
+      }
+    }
+
+    function renderCanvas({x, y}, {lx0, ly0, lx1, ly1}) {
+      ctx.save();
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // 绘制点
+      ctx.beginPath();
+      ctx.fillStyle = 'red';
+      ctx.arc(x + 5, y + 5, 5, 0, 2 * Math.PI, true);
+      ctx.closePath();
+      ctx.fill();
+
+      // 绘制线
+      ctx.beginPath();
+      ctx.strokeStyle = 'green';
+      ctx.moveTo(lx0, ly0);
+      ctx.lineTo(lx1, ly1);
+      ctx.closePath();
+      ctx.stroke();
+      ctx.restore();
+    }
+
+
+    /**
+     * 计算某个点 P 到线段 AB 的距离
+     * 1: 长度是否为 0，为 0 则是两点之间的距离
+     * 2: AP 和 AB 之间的点乘 < 0，在 BA 的延长线上，距离是 |AP|
+     * 3: AP 和 AB 之间的点乘 > |AB|，在 AB 延长线上，距离是 |BP|
+     * 4: 其余在 AB 中间：AP X AB （叉乘得到平行四边形面积）/ |AB|
+     */
+    function pointToLineLen({x, y}, {lx0, ly0, lx1, ly1}) {
+      const vectorAB = {
+        x: lx0 - lx1,
+        y: ly0 - ly1
+      };
+      const vectorAP = {
+        x: lx0 - x,
+        y: ly0 - y
+      }
+      const vectorBP = {
+        x: lx1 - x,
+        y: ly1 - y
+      }
+      if (length(vectorAB) === 0) {
+        return length({
+          x: vectorAB.x - x,
+          y: vectorAB.y - y
+        });
+      }
+      if (dot(vectorAP, vectorAB) < 0) {
+        return length(vectorAP);
+      }
+      if (dot(vectorAP, vectorAB) > length(vectorAB)) {
+        return length(vectorBP);
+      }
+      return crossLen(vectorAP, vectorAB) / length(vectorAB);
+    }
+
+  </script>
+</body>
+
+</html>
