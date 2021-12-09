@@ -24,6 +24,7 @@
       <option value="7">七边形</option>
       <option value="8">八边形</option>
       <option value="9">九边形</option>
+      <option value="100">100边形</option>
     </select>
   </div>
   <script>
@@ -68,11 +69,16 @@
     }
 
     /**
-     * 获取多边形的顶点坐标
-    */
+     * @description: 获取多边形的顶点坐标 // TODO 如果能够再增加上半径长度就更好了
+     * @param {*} num 边数
+     * @param {*} centerCo 中心坐标
+     * @return {*}
+     */    
     function getPolygonPoints(num, centerCo = [0, 0]) {
       if (typeof num != 'number' || num < 3) num = 3;
+      // 中心坐标
       const [x, y] = centerCo;
+      // 旋转角度（以顶点个数为旋转 step）
       const angle = 360 / num;
       let points = [];
       for (let i = 1; i <= num; i++) {
@@ -90,6 +96,7 @@
       // 中心点 (0, 0)，假设多边形的半径为 1，计算各个三角形的顶点坐标
       const center = [0, 0];
       const points = getPolygonPoints(num, center);
+      console.log('points', points)
       // 计算多边形的三角形坐标
       gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(points), gl.STATIC_DRAW);
 

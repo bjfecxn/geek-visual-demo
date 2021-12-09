@@ -1,0 +1,195 @@
+<!--
+ * @Author: your name
+ * @Date: 2021-12-08 11:44:49
+ * @LastEditTime: 2021-12-09 16:27:02
+ * @LastEditors: Please set LastEditors
+ * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+ * @FilePath: /geek-visual-demo/math/demo3.html
+-->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>参数方程描述曲线(学习后版本)</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+
+    canvas {
+      background-color: aliceblue;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="canvas-box">
+    <canvas id="demo3" width="800" height="800"></canvas>
+  </div>
+  <script>
+    const ANG_MAX = 2 * Math.PI;
+
+    const canvas = document.getElementById('demo3');
+    const ctx = canvas.getContext('2d');
+    const {width, height} = canvas;
+    const w = 0.5 * width, h = 0.5 * height;
+    // 中心点是原点
+    ctx.translate(w, h);
+    // 坐标系成常规数学坐标系（有文字不可以🙅‍♂️）
+    ctx.scale(1, -1);
+
+    // 根据点来绘制图形
+    function draw(points, ctx, {
+      clear = true,
+      strokeStyle = 'black',
+      fillStyle = null,
+      close = false,
+      startDraw = false
+    } = {}) {
+      const { canvas } = ctx;
+      if (clear) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+
+      
+      ctx.strokeStyle = strokeStyle;
+      if (startDraw) {
+        ctx.beginPath();
+        ctx.arc(...points[0], 5, 0, 2 * Math.PI);
+        ctx.fill();
+      }
+
+      ctx.beginPath();
+      ctx.moveTo(...points[0]);
+      for (let i = 1; i < points.length; i++) {
+        ctx.lineTo(...points[i]);
+      }
+      if (close) ctx.closePath();
+      if (fillStyle) {
+        ctx.fillStyle = fillStyle;
+        ctx.fill();
+      }
+      ctx.stroke();
+    }
+
+    /**
+     * @description: 根据不同的参数方程获取绘制其点坐标的函数
+     * @param {*} xFunc
+     * @param {*} yFunc
+     * @return {*}
+     */    
+    function parametric(xFunc, yFunc) {
+      /**
+       * @description: 所属曲线参数方程绘制点坐标获取
+       * @param {*} 圆或者椭圆等：起始弧度；抛物线等：线性变化范围（关键是要获取参数方程变化的范围是什么，以及对应的规则和变化范围之间的关系）
+       * @return {*}圆或者椭圆等：终点弧度；抛物线等：线性变化范围
+       */      
+      return (start, end, seg = 100, ...args) => {
+        const points = [];
+
+        for(let i = 0; i <= seg; i++) {
+          // 两数之间的线性增长（线性插值）  https://zh.wikipedia.org/wiki/%E7%BA%BF%E6%80%A7%E6%8F%92%E5%80%BC
+          // 比如说圆的（0, 2 * Math.PI）、（Math.PI / 3, Math.PI）等
+          // 比如说弧线的 [-5, 5][0,5]等
+          const length = end - start;
+          const t = start + (length / seg) * i;
+
+          const x = xFunc(t, ...args);
+          const y = yFunc(t, ...args);
+          points.push([x, y])
+        }
+        return points;
+      }
+    }
+
+    // 抛物线函数
+    const paraFunc = parametric(
+      (t, x0, y0, p) => {
+        return x0 + 2 * p * t ** 2;
+      },
+      (t, x0, y0, p) => {
+        return y0 + 2 * p * t;
+      }
+    );
+    // 顶点坐标 (0, 0)
+    const paraPoints = paraFunc(-3.5, 3.5, 100, 0, 0, 10);
+    console.log('paraPoints', paraPoints);
+    draw(paraPoints, ctx, {
+      strokeStyle: 'purple'
+    });
+
+    
+    // 圆参数方程
+    const circleFunc = parametric(
+      (rad, x0, y0, r) => {
+        return x0 + r * Math.cos(rad);
+      },
+      (rad, x0, y0, r) => {
+        return y0 + r * Math.sin(rad);
+      }
+    );
+    // 圆心坐标 (0,0)
+    const circlePoints = circleFunc(0, 2 * Math.PI, 100, 0, 0, 50);
+    console.log('circlePoints', circlePoints);
+    draw(circlePoints, ctx, {
+      clear: false,
+      close: true,
+      strokeStyle: 'green'
+    });
+
+    // 椭圆参数方程
+    const ellipseFunc = parametric(
+      (rad, x0, y0, long, short) => {
+        return x0 + long * Math.cos(rad);
+      },
+      (rad, x0, y0, long, short) => {
+        return y0 + short * Math.sin(rad);
+      }
+    );
+
+    // 中心点坐标 (0, 0)
+    const ellipsePoints = ellipseFunc(0, 2 * Math.PI, 100, 0, 0, 100, 50);
+    console.log('ellipsePoints', ellipsePoints);
+    draw(ellipsePoints, ctx, {
+      clear: false,
+      close: true,
+      strokeStyle: 'red'
+    });
+
+    // 星线
+    const starFunc = parametric(
+      (rad, l) => l * Math.cos(rad) ** 3,
+      (rad, l) => l * Math.sin(rad) ** 3,
+    );
+
+    const starPoints = starFunc(0, Math.PI * 2, 50, 250);
+    console.log('starPoints', starPoints);
+    draw(starPoints, ctx, {
+      close: true,
+      clear: false,
+      strokeStyle: 'blue'
+    })    
+
+    // 阿基米德螺旋线
+    const helicalFunc = parametric(
+      (t, l) => l * t * Math.cos(t),
+      (t, l) => l * t * Math.sin(t),
+    );
+
+    const helicalPoints = helicalFunc(0, 50, 500, 3);
+    console.log('helicalPoints', helicalPoints);
+    draw(helicalPoints, ctx, {
+      close: false,
+      clear: false,
+      strokeStyle: 'pink'
+    }) 
+
+
+  </script>
+</body>
+
+</html>

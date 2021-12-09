@@ -1,0 +1,102 @@
+<!--
+ * @Author: your name
+ * @Date: 2021-12-08 11:44:49
+ * @LastEditTime: 2021-12-08 15:41:26
+ * @LastEditors: Please set LastEditors
+ * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+ * @FilePath: /geek-visual-demo/math/demo3.html
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>向量描述曲线</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+    .select-area {
+      margin: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="select-area">
+    <label for="polygon-num">选择多边形：</label>
+    <select id="polygon-num" name="polygon-num">
+      <option value="4">四边形</option>
+      <option value="5">五边形</option>
+      <option value="6" selected>六边形</option>
+      <option value="7">七边形</option>
+      <option value="8">八边形</option>
+      <option value="9">九边形</option>
+      <option value="100">100边形</option>
+    </select>
+  </div>
+  <script>
+    const oSelect = document.getElementById('polygon-num');
+    oSelect.onchange = (e) => {
+      const { value } = e.target;
+      const v = Number(value);
+      render(getPolygonPoints(v, [200, 200], v > 60 ? 10 : 100));
+    }
+  </script>
+  <div class="canvas-box">
+    <canvas id="demo3" width="800" height="800"></canvas>
+  </div>
+  <script>
+    /**
+     * @description: 通过向量计算的形式获取多边形各个顶点的坐标
+     * @param {*} num 边数
+     * @param {*} x 起始 x 坐标
+     * @param {*} y 起始 y 坐标
+     * @param {*} length 边长
+     * @return {*}
+     */      
+     function getPolygonPoints(num, [x, y], length) {
+      const points = [];
+      let p = [x, y];
+      // 方向向量
+      let dirVector = [length, 0];
+      // 多边形单个外角大小（多边形外角和是 360 度）
+      const delta = (2 * Math.PI) / num;
+
+      const addVector = ([x1, y1], [x2, y2]) => {
+        return [x1 + x2, y1 + y2];
+      }
+      const rotateVector = ([x, y], rad) => {
+        const c = Math.cos(rad), s = Math.sin(rad);
+        return [x * c + y * -s, x * s + y * c];
+      }
+
+      for (let i = 0; i < num; i++) {
+        dirVector = rotateVector(dirVector, delta)
+        p = addVector(p, dirVector);
+        points.push(p);
+      }
+      return points;
+    }
+
+    const canvas = document.getElementById('demo3');
+    const ctx = canvas.getContext('2d');
+
+    render(getPolygonPoints(6, [200, 200], 100));
+
+    
+    function render(points) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.beginPath();
+      ctx.moveTo(...points[0]);
+      points.forEach((p, index) => {
+        if (!index) return;
+        ctx.lineTo(...p);
+      });
+      ctx.closePath();
+      ctx.stroke();
+    }
+  </script>
+</body>
+</html>
